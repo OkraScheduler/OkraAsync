@@ -71,9 +71,9 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
 
         final SingleResultCallback<Document> mongoCallback = (document, throwable) -> {
             if (throwable == null) {
-                callback.onResult(documentToOkraItem(document), null);
+                callback.onSuccess(documentToOkraItem(document));
             } else {
-                callback.onResult(null, throwable);
+                callback.onFailure(throwable);
             }
         };
 
@@ -84,13 +84,26 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     }
 
     public void poll(final OkraItemCallback<T> callback) {
-        final OkraItemCallback<T> pollCallback = (item, t) -> {
-            if (t == null) {
-                delete(item, (item1, t1) -> {
+        final OkraItemCallback<T> pollCallback = new OkraItemCallback<T>() {
+
+            @Override
+            public void onSuccess(final T item) {
+                delete(item, new OkraItemDeleteCallback() {
+                    @Override
+                    public void onSuccess(final boolean success) {
+                        callback.onSuccess(item);
+                    }
+
+                    @Override
+                    public void onFailure(final Throwable throwable) {
+                        callback.onFailure(throwable);
+                    }
                 });
-                callback.onResult(item, null);
-            } else {
-                callback.onResult(null, t);
+            }
+
+            @Override
+            public void onFailure(final Throwable throwable) {
+                callback.onFailure(throwable);
             }
         };
 
@@ -106,13 +119,9 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     public void delete(final T item, final OkraItemDeleteCallback callback) {
         final SingleResultCallback<DeleteResult> mongoCallback = (result, throwable) -> {
             if (throwable == null) {
-                if (result.getDeletedCount() > 0) {
-                    callback.onResult(true, null);
-                } else {
-                    callback.onResult(false, null);
-                }
+                callback.onSuccess(result.getDeletedCount() > 0);
             } else {
-                callback.onResult(false, throwable);
+                callback.onFailure(throwable);
             }
         };
 
@@ -138,16 +147,11 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
         final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
 
-        final SingleResultCallback<Document> mongoCallback = (result, t) -> {
-            if (t == null) {
-                if (result != null) {
-                    T retrievedItem = documentToOkraItem(result);
-                    callback.onResult(retrievedItem, null);
-                } else {
-                    callback.onResult(null, null);
-                }
+        final SingleResultCallback<Document> mongoCallback = (result, throwable) -> {
+            if (throwable == null) {
+                callback.onSuccess(result == null ? null : documentToOkraItem(result));
             } else {
-                callback.onResult(null, t);
+                callback.onFailure(throwable);
             }
         };
 
@@ -163,11 +167,11 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
         doc.append("status", OkraStatus.PENDING.name());
         doc.append("runDate", DateUtils.localDateTimeToDate(item.getRunDate()));
 
-        final SingleResultCallback<Void> mongoCallback = (result, t) -> {
-            if (t == null) {
-                callback.onResult(true, null);
+        final SingleResultCallback<Void> mongoCallback = (result, throwable) -> {
+            if (throwable == null) {
+                callback.onResult(true);
             } else {
-                callback.onResult(false, t);
+                callback.onFailure(throwable);
             }
         };
 
@@ -180,11 +184,11 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     public void countByStatus(final OkraStatus status, final OkraCountCallback callback) {
         final Document doc = new Document("status", status.name());
 
-        final SingleResultCallback<Long> mongoCallback = (result, t) -> {
-            if (t == null) {
-                callback.onResult(result, null);
+        final SingleResultCallback<Long> mongoCallback = (result, throwable) -> {
+            if (throwable == null) {
+                callback.onSuccess(result);
             } else {
-                callback.onResult(null, t);
+                callback.onFailure(throwable);
             }
         };
 
@@ -198,11 +202,11 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
         final Document doc = new Document(
                 "runDate", new Document("$lt", DateUtils.localDateTimeToDate(LocalDateTime.now())));
 
-        final SingleResultCallback<Long> mongoCallback = (result, t) -> {
-            if (t == null) {
-                callback.onResult(result, null);
+        final SingleResultCallback<Long> mongoCallback = (result, throwable) -> {
+            if (throwable == null) {
+                callback.onSuccess(result);
             } else {
-                callback.onResult(null, t);
+                callback.onFailure(throwable);
             }
         };
 

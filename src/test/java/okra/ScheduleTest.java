@@ -22,6 +22,7 @@
 package okra;
 
 import okra.async.model.DefaultOkraItem;
+import okra.base.async.callback.OkraItemScheduleCallback;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -39,14 +40,19 @@ public class ScheduleTest extends OkraBaseContainerTest {
         final DefaultOkraItem item = new DefaultOkraItem();
         item.setRunDate(LocalDateTime.now().minusMinutes(5));
 
-
         final boolean[] result = {false};
         final Throwable[] resultError = {null};
 
-        getDefaultOkra().schedule(item, (r, throwable) -> {
-            result[0] = r;
-            resultError[0] = throwable;
+        getDefaultOkra().schedule(item, new OkraItemScheduleCallback() {
+            @Override
+            public void onResult(final boolean success) {
+                result[0] = success;
+            }
 
+            @Override
+            public void onFailure(final Throwable throwable) {
+                resultError[0] = throwable;
+            }
         });
 
         lock.await(5, TimeUnit.SECONDS);

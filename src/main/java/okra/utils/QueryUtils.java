@@ -22,7 +22,7 @@
 
 package okra.utils;
 
-import okra.base.OkraStatus;
+import okra.base.model.OkraStatus;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

@@ -4,14 +4,14 @@ import com.mongodb.async.SingleResultCallback;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.result.DeleteResult;
 import okra.base.async.AbstractOkraAsync;
 import okra.base.async.OkraAsync;
-import okra.base.async.callback.OkraCountCallback;
-import okra.base.async.callback.OkraItemCallback;
-import okra.base.async.callback.OkraItemOperationCallback;
+import okra.base.async.callback.*;
 import okra.base.model.OkraItem;
 import okra.base.model.OkraStatus;
 import okra.index.IndexCreator;
+import okra.utils.DateUtils;
 import okra.utils.QueryUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -82,33 +82,104 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     }
 
     @Override
-    public void delete(T item, OkraItemOperationCallback callback) {
+    public void delete(T item, OkraItemDeleteCallback callback) {
+        SingleResultCallback<DeleteResult> mongoCallback = (result, t) -> {
+            if (t == null) {
+                if (result.getDeletedCount() > 0) {
+                    callback.onResult(true, null);
+                } else {
+                    callback.onResult(false, null);
+                }
+            } else {
+                callback.onResult(false, t);
+            }
+        };
+        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).deleteOne(new Document("_id", new ObjectId(item.getId())), mongoCallback);
+    }
+
+    @Override
+    public void reschedule(T item, OkraItemOperationCallback<T> callback) {
 
     }
 
     @Override
-    public void reschedule(T item, OkraItemOperationCallback callback) {
+    public void heartbeat(T item, OkraItemOperationCallback<T> callback) {
+        Document query = new Document();
+        query.put("_id", new ObjectId(item.getId()));
+        query.put("status", OkraStatus.PROCESSING.name());
+        query.put("heartbeat", DateUtils.localDateTimeToDate(item.getHeartbeat()));
 
+        Document update = new Document();
+        update.put("$set", new Document("heartbeat", new Date()));
+
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+
+        SingleResultCallback<Document> mongoCallback = (result, t) -> {
+            if (t == null) {
+                if (result != null) {
+                    T retrievedItem = documentToOkraItem(result);
+                    callback.onResult(retrievedItem, null);
+                } else {
+                    callback.onResult(null, null);
+                }
+            } else {
+                callback.onResult(null, t);
+            }
+        };
+
+        mongoClient
+                .getDatabase(getDatabase())
+                .getCollection(getCollection())
+                .findOneAndUpdate(query, update, options, mongoCallback);
     }
 
     @Override
-    public void heartbeat(T item, OkraItemOperationCallback callback) {
+    public void schedule(T item, OkraItemScheduleCallback callback) {
+        Document doc = new Document();
+        doc.append("status", OkraStatus.PENDING.name());
+        doc.append("runDate", DateUtils.localDateTimeToDate(item.getRunDate()));
 
-    }
+        SingleResultCallback<Void> mongoCallback = (result, t) -> {
+            if (t == null) {
+                callback.onResult(true, null);
+            } else {
+                callback.onResult(false, t);
+            }
+        };
 
-    @Override
-    public void schedule(T item, OkraItemOperationCallback callback) {
-
+        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).insertOne(doc, mongoCallback);
     }
 
     @Override
     public void countByStatus(OkraStatus status, OkraCountCallback callback) {
+        Document doc = new Document("status", status.name());
 
+        SingleResultCallback<Long> mongoCallback = (result, t) -> {
+            if (t == null) {
+                callback.onResult(result, null);
+            } else {
+                callback.onResult(null, t);
+            }
+        };
+
+        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).count(doc, mongoCallback);
     }
 
     @Override
     public void countDelayed(OkraCountCallback callback) {
+        Document doc = new Document(
+                "runDate", new Document("$lt", DateUtils.localDateTimeToDate(LocalDateTime.now())));
 
+        SingleResultCallback<Long> mongoCallback = (result, t) -> {
+            if (t == null) {
+                callback.onResult(result, null);
+            } else {
+                callback.onResult(null, t);
+            }
+        };
+
+        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).count(doc, mongoCallback);
     }
 
     private T documentToOkraItem(Document result) {

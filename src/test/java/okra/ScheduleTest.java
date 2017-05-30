@@ -44,9 +44,10 @@ public class ScheduleTest extends OkraBaseContainerTest {
         final Throwable[] resultError = {null};
 
         getDefaultOkra().schedule(item, new OkraItemScheduleCallback() {
+
             @Override
-            public void onResult(final boolean success) {
-                result[0] = success;
+            public void onSuccess() {
+                result[0] = true;
             }
 
             @Override

@@ -169,7 +169,7 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
 
         final SingleResultCallback<Void> mongoCallback = (result, throwable) -> {
             if (throwable == null) {
-                callback.onResult(true);
+                callback.onSuccess();
             } else {
                 callback.onFailure(throwable);
             }

@@ -1,29 +1,26 @@
-# OkraCore - Okra Asynchronous Time Based Queue 
+# Okra 
 
 Okra implementation using asynchronous MongoDB Java Driver.
 This is the fastest asynchronous Okra implementation ever made.
 
 This is a Work In Progress, but will be released very soon!
 
-[![codecov](https://codecov.io/gh/OkraScheduler/OkraCore/branch/master/graph/badge.svg)](https://codecov.io/gh/OkraScheduler/OkraCore)
+[![Build Status][travis-badge]][travis-url] [![Code Coverage][codecov-badge]][codecov-url] [![Artifacts][jitpack-badge]][jitpack-url]
 
-[![Build Status](https://travis-ci.org/OkraScheduler/OkraCore.svg?branch=master)](https://travis-ci.org/OkraScheduler/OkraCore)
-
-### Requirements
+## Requirements
 
 * Java 8
 * MongoDB Asynchronous Driver
 
-### Note 
+## Note 
 
 Pull Requests are always welcome! We will always review and accept them really fast.
 
-### Binaries
+## Dependency
 
-[![](https://jitpack.io/v/OkraScheduler/OkraCore.svg)](https://jitpack.io/#OkraScheduler/OkraCore)
-
-#### Gradle
+### Gradle
 build.gradle
+
 ```groovy
     allprojects {
         repositories {
@@ -39,18 +36,26 @@ build.gradle
     }
 ```
 
-#### Maven
-```xml
-	<dependency>
-	    <groupId>com.github.OkraScheduler</groupId>
-	    <artifactId>OkraCore</artifactId>
-	    <version>x.y.z</version>
-	</dependency>
+### Maven
 
-	<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
+```xml
+    <dependency>
+        <groupId>com.github.OkraScheduler</groupId>
+        <artifactId>OkraCore</artifactId>
+        <version>x.y.z</version>
+    </dependency>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 ```
+
+[codecov-badge]: https://codecov.io/gh/OkraScheduler/OkraCore/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/OkraScheduler/OkraAsync
+[travis-badge]: https://travis-ci.org/OkraScheduler/OkraCore.svg?branch=master
+[travis-url]: https://travis-ci.org/OkraScheduler/OkraAsync
+[jitpack-badge]: https://jitpack.io/v/OkraScheduler/OkraAsync.svg
+[jitpack-url]: https://jitpack.io/#OkraScheduler/OkraAsync

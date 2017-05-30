@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package okra.utils;
 
 import java.time.LocalDateTime;
@@ -31,5 +30,4 @@ public final class DateUtils {
     public static Date localDateTimeToDate(final LocalDateTime localDateTime) {
         return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
-
 }

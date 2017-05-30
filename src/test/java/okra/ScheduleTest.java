@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package okra;
 
 import okra.async.model.DefaultOkraItem;
@@ -37,7 +36,7 @@ public class ScheduleTest extends OkraBaseContainerTest {
 
     @Test
     public void scheduleTest() throws InterruptedException {
-        DefaultOkraItem item = new DefaultOkraItem();
+        final DefaultOkraItem item = new DefaultOkraItem();
         item.setRunDate(LocalDateTime.now().minusMinutes(5));
 
 
@@ -55,5 +54,4 @@ public class ScheduleTest extends OkraBaseContainerTest {
         assertThat(result[0]).isTrue();
         assertThat(resultError[0]).isNull();
     }
-
 }

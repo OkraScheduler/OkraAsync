@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package okra;
 
 import com.mongodb.async.SingleResultCallback;
@@ -48,13 +47,14 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OkraCore.class);
 
-    private MongoClient mongoClient;
-
     private final Class<T> scheduleItemClass;
     private final long defaultHeartbeatExpirationMillis;
 
-    public OkraCore(MongoClient mongo, String database, String collection,
-                    Class<T> scheduleItemClass, long defaultHeartbeatExpirationMillis) {
+    private MongoClient mongoClient;
+
+    public OkraCore(final MongoClient mongo, final String database,
+                    final String collection, final Class<T> scheduleItemClass,
+                    final long defaultHeartbeatExpirationMillis) {
         super(database, collection);
         this.mongoClient = mongo;
         this.scheduleItemClass = scheduleItemClass;
@@ -62,14 +62,14 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     }
 
     public void peek(final OkraItemCallback<T> callback) {
-        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
 
-        Document update = new Document();
+        final Document update = new Document();
         update.put("heartbeat", new Date());
         update.put("status", OkraStatus.PROCESSING.name());
 
-        SingleResultCallback<Document> mongoCallback = (document, throwable) -> {
+        final SingleResultCallback<Document> mongoCallback = (document, throwable) -> {
             if (throwable == null) {
                 callback.onResult(documentToOkraItem(document), null);
             } else {
@@ -83,9 +83,8 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
                 .findOneAndUpdate(QueryUtils.generatePeekQuery(defaultHeartbeatExpirationMillis), update, options, mongoCallback);
     }
 
-    public void poll(OkraItemCallback<T> callback) {
-
-        OkraItemCallback<T> pollCallback = (item, t) -> {
+    public void poll(final OkraItemCallback<T> callback) {
+        final OkraItemCallback<T> pollCallback = (item, t) -> {
             if (t == null) {
                 delete(item, (item1, t1) -> {
                 });
@@ -104,40 +103,42 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     }
 
     @Override
-    public void delete(T item, OkraItemDeleteCallback callback) {
-        SingleResultCallback<DeleteResult> mongoCallback = (result, t) -> {
-            if (t == null) {
+    public void delete(final T item, final OkraItemDeleteCallback callback) {
+        final SingleResultCallback<DeleteResult> mongoCallback = (result, throwable) -> {
+            if (throwable == null) {
                 if (result.getDeletedCount() > 0) {
                     callback.onResult(true, null);
                 } else {
                     callback.onResult(false, null);
                 }
             } else {
-                callback.onResult(false, t);
+                callback.onResult(false, throwable);
             }
         };
-        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).deleteOne(new Document("_id", new ObjectId(item.getId())), mongoCallback);
+
+        mongoClient.getDatabase(getDatabase())
+                .getCollection(getCollection())
+                .deleteOne(new Document("_id", new ObjectId(item.getId())), mongoCallback);
     }
 
     @Override
-    public void reschedule(T item, OkraItemOperationCallback<T> callback) {
-
+    public void reschedule(final T item, final OkraItemOperationCallback<T> callback) {
     }
 
     @Override
-    public void heartbeat(T item, OkraItemOperationCallback<T> callback) {
-        Document query = new Document();
+    public void heartbeat(final T item, final OkraItemOperationCallback<T> callback) {
+        final Document query = new Document();
         query.put("_id", new ObjectId(item.getId()));
         query.put("status", OkraStatus.PROCESSING.name());
         query.put("heartbeat", DateUtils.localDateTimeToDate(item.getHeartbeat()));
 
-        Document update = new Document();
+        final Document update = new Document();
         update.put("$set", new Document("heartbeat", new Date()));
 
-        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
 
-        SingleResultCallback<Document> mongoCallback = (result, t) -> {
+        final SingleResultCallback<Document> mongoCallback = (result, t) -> {
             if (t == null) {
                 if (result != null) {
                     T retrievedItem = documentToOkraItem(result);
@@ -157,12 +158,12 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
     }
 
     @Override
-    public void schedule(T item, OkraItemScheduleCallback callback) {
-        Document doc = new Document();
+    public void schedule(final T item, final OkraItemScheduleCallback callback) {
+        final Document doc = new Document();
         doc.append("status", OkraStatus.PENDING.name());
         doc.append("runDate", DateUtils.localDateTimeToDate(item.getRunDate()));
 
-        SingleResultCallback<Void> mongoCallback = (result, t) -> {
+        final SingleResultCallback<Void> mongoCallback = (result, t) -> {
             if (t == null) {
                 callback.onResult(true, null);
             } else {
@@ -170,14 +171,16 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
             }
         };
 
-        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).insertOne(doc, mongoCallback);
+        mongoClient.getDatabase(getDatabase())
+                .getCollection(getCollection())
+                .insertOne(doc, mongoCallback);
     }
 
     @Override
-    public void countByStatus(OkraStatus status, OkraCountCallback callback) {
-        Document doc = new Document("status", status.name());
+    public void countByStatus(final OkraStatus status, final OkraCountCallback callback) {
+        final Document doc = new Document("status", status.name());
 
-        SingleResultCallback<Long> mongoCallback = (result, t) -> {
+        final SingleResultCallback<Long> mongoCallback = (result, t) -> {
             if (t == null) {
                 callback.onResult(result, null);
             } else {
@@ -185,15 +188,17 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
             }
         };
 
-        mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).count(doc, mongoCallback);
+        mongoClient.getDatabase(getDatabase())
+                .getCollection(getCollection())
+                .count(doc, mongoCallback);
     }
 
     @Override
-    public void countDelayed(OkraCountCallback callback) {
-        Document doc = new Document(
+    public void countDelayed(final OkraCountCallback callback) {
+        final Document doc = new Document(
                 "runDate", new Document("$lt", DateUtils.localDateTimeToDate(LocalDateTime.now())));
 
-        SingleResultCallback<Long> mongoCallback = (result, t) -> {
+        final SingleResultCallback<Long> mongoCallback = (result, t) -> {
             if (t == null) {
                 callback.onResult(result, null);
             } else {
@@ -204,30 +209,31 @@ public class OkraCore<T extends OkraItem> extends AbstractOkraAsync<T> implement
         mongoClient.getDatabase(getDatabase()).getCollection(getCollection()).count(doc, mongoCallback);
     }
 
-    private T documentToOkraItem(Document result) {
+    private T documentToOkraItem(final Document result) {
         T okraItem = null;
         try {
             okraItem = scheduleItemClass.newInstance();
-            ObjectId objId = result.getObjectId("_id");
+            final ObjectId objId = result.getObjectId("_id");
             okraItem.setId(objId.toString());
 
-            Date heartBeat = result.getDate("heartbeat");
+            final Date heartBeat = result.getDate("heartbeat");
             if (heartBeat != null) {
                 okraItem.setHeartbeat(dateToLocalDateTime(heartBeat));
             }
 
-            Date runDate = result.getDate("runDate");
+            final Date runDate = result.getDate("runDate");
             okraItem.setRunDate(dateToLocalDateTime(runDate));
 
-            String status = result.getString("status");
+            final String status = result.getString("status");
             okraItem.setStatus(OkraStatus.valueOf(status));
         } catch (InstantiationException | IllegalAccessException e) {
             LOGGER.error("Error initializing Okra Item instance", e);
         }
+
         return okraItem;
     }
 
-    private LocalDateTime dateToLocalDateTime(Date heartBeat) {
+    private LocalDateTime dateToLocalDateTime(final Date heartBeat) {
         return LocalDateTime.ofInstant(heartBeat.toInstant(), ZoneId.systemDefault());
     }
 }

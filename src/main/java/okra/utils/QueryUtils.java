@@ -22,6 +22,7 @@
 
 package okra.utils;
 
+import com.mongodb.client.model.Filters;
 import okra.base.model.OkraStatus;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -29,39 +30,44 @@ import org.bson.conversions.Bson;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-import static com.mongodb.client.model.Filters.or;
-
 public final class QueryUtils {
 
     public static Document generateRunDateQueryPart() {
-        Document runDateQuery = new Document();
+        final Document runDateQuery = new Document();
+
         runDateQuery.put("status", OkraStatus.PENDING.name());
         runDateQuery.put("runDate", new Document("$lt", DateUtils.localDateTimeToDate(LocalDateTime.now())));
+
         return runDateQuery;
     }
 
     public static Document generateStatusProcessingAndHeartbeatExpiredQuery(final long secondsToGetExpired) {
-        Document statusProcessingAndHeartbeatExpired = new Document();
+        final Document statusProcessingAndHeartbeatExpired = new Document();
+
         statusProcessingAndHeartbeatExpired.put("status", OkraStatus.PROCESSING.name());
         statusProcessingAndHeartbeatExpired.put("heartbeat", getExpiredHeartbeatDate(secondsToGetExpired));
+
         return statusProcessingAndHeartbeatExpired;
     }
 
     private static Document generateStatusProcessingAndHeartbeatNullQuery() {
-        Document statusProcessingAndHeartbeatNull = new Document();
+        final Document statusProcessingAndHeartbeatNull = new Document();
+
         statusProcessingAndHeartbeatNull.put("status", OkraStatus.PROCESSING.name());
         statusProcessingAndHeartbeatNull.put("heartbeat", null);
+
         return statusProcessingAndHeartbeatNull;
     }
 
     public static Bson generatePeekQuery(final long secondsToGetExpired) {
-        return or(QueryUtils.generateRunDateQueryPart(),
+        return Filters.or(
+                QueryUtils.generateRunDateQueryPart(),
                 QueryUtils.generateStatusProcessingAndHeartbeatExpiredQuery(secondsToGetExpired),
-                QueryUtils.generateStatusProcessingAndHeartbeatNullQuery());
+                QueryUtils.generateStatusProcessingAndHeartbeatNullQuery()
+        );
     }
 
     private static Date getExpiredHeartbeatDate(final long secondsToGetExpired) {
         return DateUtils.localDateTimeToDate(LocalDateTime.now().minusSeconds(secondsToGetExpired));
     }
-
 }

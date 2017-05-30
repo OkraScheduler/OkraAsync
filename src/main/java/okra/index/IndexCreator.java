@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package okra.index;
 
 import com.mongodb.async.SingleResultCallback;
@@ -40,24 +39,23 @@ public final class IndexCreator {
                                                           final String database,
                                                           final String collection) {
 
-        SingleResultCallback<String> indexCreateCallback = (result, t) -> {
-            if (t == null) {
+        final SingleResultCallback<String> indexCreateCallback = (result, throwable) -> {
+            if (throwable == null) {
                 LOGGER.info("Done. Index name: {}", result);
             } else {
-                LOGGER.error("ERROR Creating Okra Index! This may be dangerous!", t);
+                LOGGER.error("ERROR Creating Okra Index! This may be dangerous!", throwable);
             }
         };
 
-        okra.indexDefinitions()
-                .forEach(indexDef -> {
-                    final boolean ascending = indexDef.getOrdering() == null
-                            || indexDef.getOrdering().equals(Ordering.ASC);
-                    final Bson ordering = ascending
-                            ? Indexes.ascending(indexDef.getAttrs()) : Indexes.descending(indexDef.getAttrs());
-                    mongo
-                            .getDatabase(database)
-                            .getCollection(collection)
-                            .createIndex(ordering, indexCreateCallback);
-                });
+        okra.indexDefinitions().forEach(indexDef -> {
+            final boolean ascending = indexDef.getOrdering() == null
+                    || indexDef.getOrdering().equals(Ordering.ASC);
+            final Bson ordering = ascending
+                    ? Indexes.ascending(indexDef.getAttrs()) : Indexes.descending(indexDef.getAttrs());
+            mongo
+                    .getDatabase(database)
+                    .getCollection(collection)
+                    .createIndex(ordering, indexCreateCallback);
+        });
     }
 }

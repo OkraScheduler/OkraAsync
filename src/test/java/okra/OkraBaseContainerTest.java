@@ -47,17 +47,16 @@ public abstract class OkraBaseContainerTest {
 
     @Before
     public void setUp() throws UnknownHostException {
-
-        ClusterSettings clusterSettings = ClusterSettings
+        final ClusterSettings clusterSettings = ClusterSettings
                 .builder()
-                .hosts(Collections
-                        .singletonList(
-                                new ServerAddress(
-                                        mongoContainer.getContainerIpAddress(),
-                                        mongoContainer.getMappedPort(27017))))
+                .hosts(
+                        Collections.singletonList(new ServerAddress(
+                                mongoContainer.getContainerIpAddress(),
+                                mongoContainer.getMappedPort(27017)
+                        )))
                 .build();
 
-        MongoClientSettings settings = MongoClientSettings
+        final MongoClientSettings settings = MongoClientSettings
                 .builder()
                 .applicationName("okraCoreTests")
                 .clusterSettings(clusterSettings)

@@ -28,46 +28,35 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
-public final class QueryUtils {
+public final class QueryUtil {
 
     public static Document generateRunDateQueryPart() {
-        final Document runDateQuery = new Document();
-
-        runDateQuery.put("status", OkraStatus.PENDING.name());
-        runDateQuery.put("runDate", new Document("$lt", DateUtils.localDateTimeToDate(LocalDateTime.now())));
-
-        return runDateQuery;
+        final Document query = new Document();
+        query.put("status", OkraStatus.PENDING.name());
+        query.put("runDate", new Document("$lt", DateUtil.toDate(LocalDateTime.now())));
+        return query;
     }
 
     public static Document generateStatusProcessingAndHeartbeatExpiredQuery(final long secondsToGetExpired) {
-        final Document statusProcessingAndHeartbeatExpired = new Document();
-
-        statusProcessingAndHeartbeatExpired.put("status", OkraStatus.PROCESSING.name());
-        statusProcessingAndHeartbeatExpired.put("heartbeat", getExpiredHeartbeatDate(secondsToGetExpired));
-
-        return statusProcessingAndHeartbeatExpired;
+        final Document query = new Document();
+        query.put("status", OkraStatus.PROCESSING.name());
+        query.put("heartbeat", DateUtil.nowMinusSeconds(secondsToGetExpired));
+        return query;
     }
 
     private static Document generateStatusProcessingAndHeartbeatNullQuery() {
-        final Document statusProcessingAndHeartbeatNull = new Document();
-
-        statusProcessingAndHeartbeatNull.put("status", OkraStatus.PROCESSING.name());
-        statusProcessingAndHeartbeatNull.put("heartbeat", null);
-
-        return statusProcessingAndHeartbeatNull;
+        final Document query = new Document();
+        query.put("status", OkraStatus.PROCESSING.name());
+        query.put("heartbeat", null);
+        return query;
     }
 
     public static Bson generatePeekQuery(final long secondsToGetExpired) {
         return Filters.or(
-                QueryUtils.generateRunDateQueryPart(),
-                QueryUtils.generateStatusProcessingAndHeartbeatExpiredQuery(secondsToGetExpired),
-                QueryUtils.generateStatusProcessingAndHeartbeatNullQuery()
+                QueryUtil.generateRunDateQueryPart(),
+                QueryUtil.generateStatusProcessingAndHeartbeatExpiredQuery(secondsToGetExpired),
+                QueryUtil.generateStatusProcessingAndHeartbeatNullQuery()
         );
-    }
-
-    private static Date getExpiredHeartbeatDate(final long secondsToGetExpired) {
-        return DateUtils.localDateTimeToDate(LocalDateTime.now().minusSeconds(secondsToGetExpired));
     }
 }

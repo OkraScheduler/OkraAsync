@@ -19,12 +19,12 @@ Pull Requests are always welcome! We will always review and accept them really f
 ## Dependency
 
 ### Gradle
+
 build.gradle
 
 ```groovy
     allprojects {
         repositories {
-            ...
             maven { url "https://jitpack.io" }
         }
     }

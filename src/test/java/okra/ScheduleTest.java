@@ -21,8 +21,8 @@
  */
 package okra;
 
-import okra.async.model.DefaultOkraItem;
 import okra.base.async.callback.OkraItemScheduleCallback;
+import okra.model.DefaultOkraItem;
 import org.junit.Test;
 
 import java.time.LocalDateTime;

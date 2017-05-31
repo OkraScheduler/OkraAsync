@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package okra.async.model;
+package okra.model;
 
 import lombok.Data;
 import okra.base.model.OkraItem;

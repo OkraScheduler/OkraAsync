@@ -39,7 +39,7 @@ public final class IndexCreator {
                                                           final String database,
                                                           final String collection) {
 
-        final SingleResultCallback<String> indexCreateCallback = (result, throwable) -> {
+        final SingleResultCallback<String> callback = (result, throwable) -> {
             if (throwable == null) {
                 LOGGER.info("Done. Index name: {}", result);
             } else {
@@ -47,15 +47,16 @@ public final class IndexCreator {
             }
         };
 
-        okra.indexDefinitions().forEach(indexDef -> {
+        okra.getIndexDefs().forEach(indexDef -> {
             final boolean ascending = indexDef.getOrdering() == null
                     || indexDef.getOrdering().equals(Ordering.ASC);
+
             final Bson ordering = ascending
                     ? Indexes.ascending(indexDef.getAttrs()) : Indexes.descending(indexDef.getAttrs());
-            mongo
-                    .getDatabase(database)
+
+            mongo.getDatabase(database)
                     .getCollection(collection)
-                    .createIndex(ordering, indexCreateCallback);
+                    .createIndex(ordering, callback);
         });
     }
 }

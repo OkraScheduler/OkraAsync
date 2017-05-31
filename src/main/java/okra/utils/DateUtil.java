@@ -25,9 +25,25 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-public final class DateUtils {
+public final class DateUtil {
 
-    public static Date localDateTimeToDate(final LocalDateTime localDateTime) {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    public static Date toDate(final LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    public static LocalDateTime toLocalDateTime(final Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    public static Date nowMinusSeconds(final long seconds) {
+        return DateUtil.toDate(LocalDateTime.now().minusSeconds(seconds));
     }
 }

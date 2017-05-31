@@ -26,8 +26,8 @@ import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoClientSettings;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.connection.ClusterSettings;
-import okra.async.model.DefaultOkraItem;
 import okra.base.async.OkraAsync;
+import okra.model.DefaultOkraItem;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -42,7 +42,7 @@ public abstract class OkraBaseContainerTest {
     @ClassRule
     public static GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
 
-    private OkraCore<DefaultOkraItem> okraSync;
+    private OkraSyncImpl<DefaultOkraItem> okraSync;
     private MongoClient mongoClient;
 
     @Before
@@ -63,18 +63,22 @@ public abstract class OkraBaseContainerTest {
                 .build();
 
         mongoClient = MongoClients.create(settings);
-        okraSync = new OkraCore<>(getDefaultMongo(), "okraCoreTests",
-                "okraAsync", DefaultOkraItem.class,
-                TimeUnit.MINUTES.toMillis(5));
-    }
-
-    public MongoClient getDefaultMongo() {
-        return mongoClient;
+        okraSync = new OkraSyncImpl<>(
+                getDefaultMongo(),
+                "okraCoreTests",
+                "okraAsync",
+                DefaultOkraItem.class,
+                TimeUnit.MINUTES.toMillis(5)
+        );
     }
 
     @After
     public void shutdown() {
         mongoClient.close();
+    }
+
+    public MongoClient getDefaultMongo() {
+        return mongoClient;
     }
 
     public OkraAsync<DefaultOkraItem> getDefaultOkra() {

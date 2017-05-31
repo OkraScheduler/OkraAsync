@@ -32,7 +32,7 @@ build.gradle
 
 ```groovy
     dependencies {
-        compile 'com.github.OkraScheduler:OkraCore:x.y.z'
+        compile 'com.github.OkraScheduler:OkraAsync:x.y.z'
     }
 ```
 
@@ -41,7 +41,7 @@ build.gradle
 ```xml
     <dependency>
         <groupId>com.github.OkraScheduler</groupId>
-        <artifactId>OkraCore</artifactId>
+        <artifactId>OkraAsync</artifactId>
         <version>x.y.z</version>
     </dependency>
 
@@ -53,9 +53,9 @@ build.gradle
     </repositories>
 ```
 
-[codecov-badge]: https://codecov.io/gh/OkraScheduler/OkraCore/branch/master/graph/badge.svg
+[codecov-badge]: https://codecov.io/gh/OkraScheduler/OkraAsync/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/OkraScheduler/OkraAsync
-[travis-badge]: https://travis-ci.org/OkraScheduler/OkraCore.svg?branch=master
+[travis-badge]: https://travis-ci.org/OkraScheduler/OkraAsync.svg?branch=master
 [travis-url]: https://travis-ci.org/OkraScheduler/OkraAsync
 [jitpack-badge]: https://jitpack.io/v/OkraScheduler/OkraAsync.svg
 [jitpack-url]: https://jitpack.io/#OkraScheduler/OkraAsync

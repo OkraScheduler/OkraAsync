@@ -42,7 +42,7 @@ public abstract class OkraBaseContainerTest {
     @ClassRule
     public static GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
 
-    private OkraAsyncImpl<DefaultOkraItem> okraSync;
+    private OkraAsyncImpl<DefaultOkraItem> okra;
     private MongoClient mongoClient;
 
     @Before
@@ -58,14 +58,14 @@ public abstract class OkraBaseContainerTest {
 
         final MongoClientSettings settings = MongoClientSettings
                 .builder()
-                .applicationName("okraCoreTests")
+                .applicationName("okraAsyncTests")
                 .clusterSettings(clusterSettings)
                 .build();
 
         mongoClient = MongoClients.create(settings);
-        okraSync = new OkraAsyncImpl<>(
+        okra = new OkraAsyncImpl<>(
                 getDefaultMongo(),
-                "okraCoreTests",
+                "okraAsyncTests",
                 "okraAsync",
                 DefaultOkraItem.class,
                 TimeUnit.MINUTES.toMillis(5)
@@ -82,6 +82,6 @@ public abstract class OkraBaseContainerTest {
     }
 
     public OkraAsync<DefaultOkraItem> getDefaultOkra() {
-        return okraSync;
+        return okra;
     }
 }

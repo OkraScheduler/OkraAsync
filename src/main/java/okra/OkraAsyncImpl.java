@@ -29,6 +29,7 @@ import okra.base.async.OkraAsync;
 import okra.base.async.callback.*;
 import okra.base.model.OkraItem;
 import okra.base.model.OkraStatus;
+import okra.exception.OkraRuntimeException;
 import okra.index.IndexCreator;
 import okra.serialization.DocumentSerializer;
 import okra.util.DateUtil;
@@ -55,8 +56,16 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
         this.itemClass = itemClass;
         this.defaultHeartbeatExpirationMillis = defaultHeartbeatExpirationMillis;
         this.serializer = new DocumentSerializer();
+        setup();
     }
 
+    @Override
+    public void setup() {
+        super.setup();
+        IndexCreator.ensureIndexes(this, client, getDatabase(), getCollection());
+    }
+
+    @Override
     public void peek(final OkraItemCallback<T> callback) {
         final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
@@ -77,6 +86,7 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
                         });
     }
 
+    @Override
     public void poll(final OkraItemCallback<T> callback) {
         peek(new OkraItemCallback<T>() {
 
@@ -106,11 +116,6 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
     }
 
     @Override
-    public void setup() {
-        IndexCreator.ensureIndexes(this, client, getDatabase(), getCollection());
-    }
-
-    @Override
     public void delete(final T item, final OkraItemDeleteCallback callback) {
         client.getDatabase(getDatabase())
                 .getCollection(getCollection())
@@ -125,6 +130,7 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
 
     @Override
     public void reschedule(final T item, final OkraItemOperationCallback<T> callback) {
+        throw new OkraRuntimeException("Method not implemented yet");
     }
 
     @Override

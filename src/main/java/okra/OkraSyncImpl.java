@@ -32,24 +32,22 @@ import okra.base.async.callback.*;
 import okra.base.model.OkraItem;
 import okra.base.model.OkraStatus;
 import okra.index.IndexCreator;
+import okra.serialization.Serializer;
 import okra.util.DateUtil;
 import okra.util.QueryUtil;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 
 public class OkraSyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> implements OkraAsync<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OkraSyncImpl.class);
-
     private final Class<T> itemClass;
     private final long defaultHeartbeatExpirationMillis;
 
     private final MongoClient client;
+    private Serializer serializer;
 
     public OkraSyncImpl(final MongoClient mongo, final String database,
                         final String collection, final Class<T> itemClass,
@@ -58,6 +56,7 @@ public class OkraSyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> imple
         this.client = mongo;
         this.itemClass = itemClass;
         this.defaultHeartbeatExpirationMillis = defaultHeartbeatExpirationMillis;
+        this.serializer = new Serializer();
     }
 
     public void peek(final OkraItemCallback<T> callback) {
@@ -70,7 +69,8 @@ public class OkraSyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> imple
 
         final SingleResultCallback<Document> mongoCallback = (document, throwable) -> {
             if (throwable == null) {
-                callback.onSuccess(documentToOkraItem(document));
+                final T model = serializer.fromDocument(itemClass, document).orElse(null);
+                callback.onSuccess(model);
             } else {
                 callback.onFailure(throwable);
             }
@@ -148,9 +148,10 @@ public class OkraSyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> imple
         final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
 
-        final SingleResultCallback<Document> mongoCallback = (result, throwable) -> {
+        final SingleResultCallback<Document> mongoCallback = (document, throwable) -> {
             if (throwable == null) {
-                callback.onSuccess(documentToOkraItem(result));
+                final T model = serializer.fromDocument(itemClass, document).orElse(null);
+                callback.onSuccess(model);
             } else {
                 callback.onFailure(throwable);
             }
@@ -216,26 +217,5 @@ public class OkraSyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> imple
         client.getDatabase(getDatabase())
                 .getCollection(getCollection())
                 .count(document, mongoCallback);
-    }
-
-    private T documentToOkraItem(final Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        try {
-            final T item = itemClass.newInstance();
-
-            item.setId(document.getObjectId("_id").toString());
-            item.setHeartbeat(DateUtil.toLocalDateTime(document.getDate("heartbeat")));
-            item.setRunDate(DateUtil.toLocalDateTime(document.getDate("runDate")));
-            item.setStatus(OkraStatus.valueOf(document.getString("status")));
-
-            return item;
-        } catch (InstantiationException | IllegalAccessException e) {
-            LOGGER.error("Error initializing Okra Item instance", e);
-        }
-
-        return null;
     }
 }

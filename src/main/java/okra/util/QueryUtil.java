@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package okra.utils;
+package okra.util;
 
 import com.mongodb.client.model.Filters;
 import okra.base.model.OkraStatus;

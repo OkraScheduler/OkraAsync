@@ -26,6 +26,7 @@ import com.mongodb.async.client.MongoClient;
 import com.mongodb.client.model.Indexes;
 import okra.base.Okra;
 import okra.base.model.OkraItem;
+import okra.base.model.index.Ordering;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

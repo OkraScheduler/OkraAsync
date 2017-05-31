@@ -42,7 +42,7 @@ public abstract class OkraBaseContainerTest {
     @ClassRule
     public static GenericContainer mongoContainer = new GenericContainer("mongo:3.4").withExposedPorts(27017);
 
-    private OkraSyncImpl<DefaultOkraItem> okraSync;
+    private OkraAsyncImpl<DefaultOkraItem> okraSync;
     private MongoClient mongoClient;
 
     @Before
@@ -63,7 +63,7 @@ public abstract class OkraBaseContainerTest {
                 .build();
 
         mongoClient = MongoClients.create(settings);
-        okraSync = new OkraSyncImpl<>(
+        okraSync = new OkraAsyncImpl<>(
                 getDefaultMongo(),
                 "okraCoreTests",
                 "okraAsync",

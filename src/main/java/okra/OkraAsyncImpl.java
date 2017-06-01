@@ -135,7 +135,10 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
 
     @Override
     public void heartbeat(final T item, final OkraItemOperationCallback<T> callback) {
-        final Document query = serializer.toDocument(item);
+        final Document query = new Document();
+        query.put("_id", new ObjectId(item.getId()));
+        query.put("status", OkraStatus.PROCESSING.name());
+        query.put("heartbeat", DateUtil.toDate(item.getHeartbeat()));
 
         final Document update = new Document();
         update.put("$set", new Document("heartbeat", new Date()));

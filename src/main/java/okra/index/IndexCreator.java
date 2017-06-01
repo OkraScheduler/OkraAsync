@@ -48,16 +48,17 @@ public final class IndexCreator {
             }
         };
 
-        okra.getIndexDefs().forEach(indexDef -> {
-            final boolean ascending = indexDef.getOrdering() == null
-                    || indexDef.getOrdering().equals(Ordering.ASC);
+        okra.getIndexDefs()
+                .forEach(indexDef -> {
+                    final boolean ascending = indexDef.getOrdering() == null
+                            || indexDef.getOrdering().equals(Ordering.ASC);
 
-            final Bson ordering = ascending
-                    ? Indexes.ascending(indexDef.getAttrs()) : Indexes.descending(indexDef.getAttrs());
+                    final Bson ordering = ascending
+                            ? Indexes.ascending(indexDef.getAttrs()) : Indexes.descending(indexDef.getAttrs());
 
-            mongo.getDatabase(database)
-                    .getCollection(collection)
-                    .createIndex(ordering, callback);
-        });
+                    mongo.getDatabase(database)
+                            .getCollection(collection)
+                            .createIndex(ordering, callback);
+                });
     }
 }

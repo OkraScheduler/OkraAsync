@@ -29,7 +29,7 @@ import okra.base.async.OkraAsync;
 import okra.base.async.callback.*;
 import okra.base.model.OkraItem;
 import okra.base.model.OkraStatus;
-import okra.exception.OkraRuntimeException;
+import okra.exception.InvalidOkraItemException;
 import okra.index.IndexCreator;
 import okra.serialization.DocumentSerializer;
 import okra.util.DateUtil;
@@ -130,7 +130,32 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
 
     @Override
     public void reschedule(final T item, final OkraItemOperationCallback<T> callback) {
-        throw new OkraRuntimeException("Method not implemented yet");
+        validateReschedule(item);
+
+        final Document query = new Document();
+        query.put("_id", new ObjectId(item.getId()));
+        query.put("heartbeat", DateUtil.toDate(item.getHeartbeat()));
+
+        final Document setDoc = new Document();
+        setDoc.put("heartbeat", null);
+        setDoc.put("runDate", DateUtil.toDate(item.getRunDate()));
+        setDoc.put("status", OkraStatus.PENDING.name());
+
+        final Document update = new Document();
+        update.put("$set", setDoc);
+
+        final FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+
+        client.getDatabase(getDatabase())
+                .getCollection(getCollection())
+                .findOneAndUpdate(query, update, options, (document, throwable) -> {
+                    if (throwable == null) {
+                        callback.onSuccess(serializer.fromDocument(itemClass, document));
+                    } else {
+                        callback.onFailure(throwable);
+                    }
+                });
     }
 
     @Override
@@ -203,5 +228,14 @@ public class OkraAsyncImpl<T extends OkraItem> extends AbstractOkraAsync<T> impl
                         callback.onFailure(throwable);
                     }
                 });
+    }
+
+    private void validateReschedule(final T item) {
+        if (item == null
+                || item.getHeartbeat() == null
+                || item.getRunDate() == null
+                || item.getId() == null) {
+            throw new InvalidOkraItemException();
+        }
     }
 }

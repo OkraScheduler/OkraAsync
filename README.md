@@ -3,7 +3,7 @@
 Okra implementation using asynchronous MongoDB Java Driver.
 This is the fastest asynchronous Okra implementation ever made.
 
-This is a Work In Progress, but will be released very soon!
+This is a Work In Progress.
 
 [![Build Status][travis-badge]][travis-url] [![Code Coverage][codecov-badge]][codecov-url] [![Artifacts][jitpack-badge]][jitpack-url]
 
